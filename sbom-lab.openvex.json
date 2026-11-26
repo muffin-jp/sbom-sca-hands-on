@@ -1,0 +1,26 @@
+{
+  "@context": "https://openvex.dev/ns/v0.2.0",
+  "@id": "https://openvex.dev/docs/public/vex-ed1d0357ca04b8eabc042ea87c663f938e6a40046b4f7a595d973df138384344",
+  "author": "sbom-lab-learner",
+  "version": 1,
+  "statements": [
+    {
+      "vulnerability": {
+        "name": "CVE-2020-1747",
+        "aliases": [
+          "GHSA-6757-jp84-gxfx"
+        ]
+      },
+      "products": [
+        {
+          "@id": "pkg:pypi/pyyaml@5.3"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "app.py uses yaml.safe_load only; FullLoader/full_load/unsafe_load are never called",
+      "timestamp": "2026-11-25T08:01:35.176105Z"
+    }
+  ],
+  "timestamp": "2026-11-25T08:01:35Z"
+}
