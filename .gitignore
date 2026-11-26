@@ -1,0 +1,13 @@
+# ローカルで生成した成果物（CIは毎回作り直す）
+# SBOMファイルをリポジトリに置くと、Syftがそれも読み込んで部品を二重に数えるので入れない
+sbom*.cdx.json
+sbom*.spdx.json
+grype*.json
+trivy.json
+dt-*-findings.tsv
+*.err
+g.txt
+t.txt
+g_cve.txt
+dt_ghsa.txt
+dt_nvd.txt

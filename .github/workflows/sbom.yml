@@ -1,0 +1,43 @@
+# SBOM生成 → Grype照合（VEX適用）→ タグ時にSBOM保管
+# アクションは2026-11-25時点の最新メジャー（v7）を使用
+name: sbom
+on:
+  pull_request:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+jobs:
+  sbom:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+
+      # SyftでSBOMを生成（Anchore公式のアクション）
+      - uses: anchore/sbom-action@v0
+        with:
+          path: .
+          format: cyclonedx-json
+          output-file: sbom.cdx.json
+          upload-artifact: false   # 保管はタグ時だけ下で行う
+
+      # Grypeで照合。High以上で失敗させる
+      - uses: anchore/scan-action@v7
+        with:
+          sbom: sbom.cdx.json
+          vex: sbom-lab.openvex.json   # Step 4のVEXを反映
+          by-cve: true                 # IDをCVEにそろえる
+          severity-cutoff: high
+          fail-build: true
+          output-format: table
+
+      # タグのときだけSBOMとVEXを保管（照合で失敗しても保管する）
+      - if: ${{ !cancelled() && startsWith(github.ref, 'refs/tags/') }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: sbom-${{ github.ref_name }}
+          path: |
+            sbom.cdx.json
+            sbom-lab.openvex.json
