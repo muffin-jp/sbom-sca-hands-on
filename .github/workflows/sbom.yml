@@ -1,5 +1,5 @@
 # SBOM生成 → Grype照合（VEX適用）→ タグ時にSBOM保管
-# 2026-11-25時点の最新メジャーに更新（手順書の v4/v6 から変更）
+# アクションは2026-11-25時点の最新メジャー（v7）を使用
 name: sbom
 on:
   pull_request:
@@ -23,13 +23,12 @@ jobs:
           output-file: sbom.cdx.json
           upload-artifact: false   # 保管はタグ時だけ下で行う
 
-      # Grypeで照合。High以上で失敗させる（練習用プロジェクトは意図的に失敗します）
+      # Grypeで照合。High以上で失敗させる
       - uses: anchore/scan-action@v7
-        id: scan
         with:
           sbom: sbom.cdx.json
-          vex: sbom-lab.openvex.json   # Step4のVEXを反映
-          by-cve: true                 # IDをCVEに揃える（Trivy・VEXと一致させる）
+          vex: sbom-lab.openvex.json   # Step 4のVEXを反映
+          by-cve: true                 # IDをCVEにそろえる
           severity-cutoff: high
           fail-build: true
           output-format: table
