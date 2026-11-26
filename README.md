@@ -393,8 +393,8 @@ jobs:
           fail-build: true
           output-format: table
 
-      # タグのときだけSBOMとVEXを保管
-      - if: startsWith(github.ref, 'refs/tags/')
+      # タグのときだけSBOMとVEXを保管（照合で失敗しても保管する）
+      - if: ${{ !cancelled() && startsWith(github.ref, 'refs/tags/') }}
         uses: actions/upload-artifact@v7
         with:
           name: sbom-${{ github.ref_name }}
@@ -406,7 +406,7 @@ jobs:
 | いつ | 何をする |
 | --- | --- |
 | Pull Requestを作ったとき | SBOMを作る → 脆弱性をチェック（VEXも反映）→ High以上があれば失敗 |
-| `v*` タグをpushしたとき | 上に加えて、SBOMとVEXを保管 |
+| `v*` タグをpushしたとき | 上に加えて、SBOMとVEXをArtifact `sbom-<タグ名>` として保管（チェックが失敗しても保管する） |
 | 手動 | Actionsタブの「Run workflow」 |
 
 **設定のポイント**
@@ -414,6 +414,18 @@ jobs:
 - アクションは2026-11-25時点の最新メジャー（checkout、scan-action、upload-artifactはv7）を使っています。使う前に、各リポジトリのREADMEでバージョンと入力名を確かめてください
 - `vex:` でStep 4のVEXを反映し、`by-cve: true` でIDをCVEにそろえています
 - sbom-actionは、何も指定しないとSBOMを毎回Artifactとして保管します。タグのときだけ保管したいので、`upload-artifact: false` を付けています
+- 保管ステップの `if:` には `!cancelled()` を入れています。`if:` に状態関数（`always()`、`!cancelled()` など）を書かないと、GitHub Actionsは「前のステップがすべて成功したとき」という条件を自動で付けます。そのままでは、High以上の脆弱性でチェックが失敗したリリースのSBOMが保管されません。リリースのSBOMは「出荷したものの記録」なので、脆弱性があっても残します（ジョブの結果は失敗のままです）
+
+**タグでの使い方**
+
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+- タグが指すコミットに `.github/workflows/sbom.yml` が入っている必要があります
+- 保管したファイルは、実行ページの「Artifacts」欄か `gh run download <run-id> -n sbom-v1.0.0` で取得できます
+- Artifactは期限が来ると消えます（初期設定は90日）。長く残すなら、GitHub Releaseに添付するか、Dependency-Trackに登録してください
 
 ### チェックが失敗するのは正しい動作です
 
